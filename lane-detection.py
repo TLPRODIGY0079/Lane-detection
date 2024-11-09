@@ -1,4 +1,3 @@
-
 import gym
 import numpy as np
 import matplotlib.pyplot as plt
@@ -48,22 +47,23 @@ num_episodes = 1000
 # Initialize Q-table
 q_table = np.zeros((env.observation_space.n, env.action_space.n))
 
-# Q-learning algorithm
+# Q-learning algorithm with average reward logging
 for episode in range(num_episodes):
     state = env.reset()
     done = False
     total_reward = 0
 
     while not done:
+        # Choose action: Explore or Exploit
         if random.uniform(0, 1) < epsilon:
-            action = env.action_space.sample()  # Explore action space
+            action = env.action_space.sample()  # Explore
         else:
-            action = np.argmax(q_table[state])  # Exploit learned values
+            action = np.argmax(q_table[state])  # Exploit
 
         next_state, reward, done, _ = env.step(action)
         total_reward += reward
 
-        # Q-learning formula
+        # Q-learning update rule
         old_value = q_table[state, action]
         next_max = np.max(q_table[next_state])
         new_value = (1 - alpha) * old_value + alpha * (reward + gamma * next_max)
@@ -71,22 +71,30 @@ for episode in range(num_episodes):
 
         state = next_state
 
+    # Decay epsilon
     if epsilon > epsilon_min:
         epsilon *= epsilon_decay
 
-    if episode % 100 == 0:
-        print(f"Episode: {episode} | Total Reward: {total_reward}")
+    # Print average reward every 100 episodes
+    if (episode + 1) % 100 == 0:
+        avg_reward = total_reward / (episode + 1)
+        print(f"Episode: {episode + 1} | Average Reward: {avg_reward:.2f}")
 
-# Plotting the Q-values
+# Plot the Q-values for visualization
 plt.imshow(q_table, cmap='hot', interpolation='nearest')
 plt.colorbar()
+plt.title("Q-table Heatmap")
+plt.xlabel("Actions")
+plt.ylabel("States")
 plt.show()
 
-# Run a demo to show the car's learning
+# Demo to show the car's learning after training
+print("\nDemo Episodes:")
 for episode in range(5):
     state = env.reset()
     done = False
     total_reward = 0
+    print(f"\nDemo Episode: {episode + 1}")
 
     while not done:
         action = np.argmax(q_table[state])
@@ -94,4 +102,5 @@ for episode in range(5):
         total_reward += reward
         env.render()
 
-    print(f"Episode: {episode} | Total Reward: {total_reward}")
+    print(f"Demo Episode: {episode + 1} | Total Reward: {total_reward}")
+
