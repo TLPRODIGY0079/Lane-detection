@@ -13,7 +13,6 @@ pygame.display.set_caption("Car Simulation")
 
 # Colors
 WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 
@@ -34,15 +33,12 @@ alpha = 0.1
 gamma = 0.9
 epsilon = 1.0
 epsilon_min = 0.1
-epsilon_decay = 0.995
+epsilon_decay = 0.99  # Slightly slower decay for better learning
 num_episodes = 1000
 
-# Action space: left, right, up, down, more diagonals (full and half-speed)
+# Action space: left, right, up, down
 actions = [
-    (-car_speed, 0), (car_speed, 0), (0, -car_speed), (0, car_speed),
-    (-car_speed, -car_speed), (car_speed, -car_speed), (-car_speed, car_speed), (car_speed, car_speed),
-    (-car_speed // 2, -car_speed // 2), (car_speed // 2, -car_speed // 2), (-car_speed // 2, car_speed // 2), (car_speed // 2, car_speed // 2),
-    (car_speed // 2, 0), (-car_speed // 2, 0), (0, car_speed // 2), (0, -car_speed // 2)
+    (-car_speed, 0), (car_speed, 0), (0, -car_speed), (0, car_speed)
 ]
 state_space_size = (WIDTH // car_speed, HEIGHT // car_speed)
 
@@ -64,23 +60,26 @@ def step(car_x, car_y, action):
     reward = -1  # Small penalty for each step
     done = False
 
+    # Collision with obstacle
     for obs in obstacles:
         if car_x < obs[0] + OBSTACLE_WIDTH and car_x + CAR_WIDTH > obs[0] and car_y < obs[1] + OBSTACLE_HEIGHT and car_y + CAR_HEIGHT > obs[1]:
             reward = -100  # Large penalty for collision
             done = True
 
+    # Reaching the goal
     if car_y <= 0:
         reward = 100  # Reward for reaching the goal
         done = True
 
-    reward += distance_to_goal(car_y) / 100  # Reward for getting closer to the goal
+    # Additional reward for getting closer to the goal
+    reward += distance_to_goal(car_y) / 100
 
     return get_state(car_x, car_y), reward, done, car_x, car_y
 
 # Track learning progress
 rewards_over_time = []
 
-# Q-learning algorithm
+# Q-learning training
 for episode in range(num_episodes):
     car_x, car_y = reset_car()
     state = get_state(car_x, car_y)
@@ -116,7 +115,7 @@ plt.ylabel("Total Reward")
 plt.title("Car's Improvement Over Time")
 plt.show()
 
-# Main loop to visualize learned behavior
+# Visualization loop
 running = True
 car_x, car_y = reset_car()
 state = get_state(car_x, car_y)
@@ -144,6 +143,7 @@ while running:
         state = get_state(car_x, car_y)
 
 pygame.quit()
+
 
 
 
